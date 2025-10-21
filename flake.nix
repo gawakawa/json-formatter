@@ -1,29 +1,70 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
+
+      imports = [ inputs.treefmt-nix.flakeModule ];
+
+      perSystem =
+        {
+          pkgs,
+          system,
+          ...
+        }:
+        let
+          ciPackages = with pkgs; [
             rustup
           ];
 
-          shellHook = '''';
+          devPackages =
+            ciPackages
+            ++ (with pkgs; [
+              # Additional development tools can be added here
+            ]);
+
+          mcpConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs {
+            programs = {
+              serena.enable = true;
+              nixos.enable = true;
+            };
+          };
+        in
+        {
+          packages = {
+            ci = pkgs.buildEnv {
+              name = "ci";
+              paths = ciPackages;
+            };
+
+            mcp-config = mcpConfig;
+          };
+
+          devShells.default = pkgs.mkShell {
+            buildInputs = devPackages;
+
+            shellHook = ''
+              cat ${mcpConfig} > .mcp.json
+              echo "Generated .mcp.json"
+            '';
+          };
+
+          treefmt = {
+            programs = {
+              nixfmt.enable = true;
+              rustfmt.enable = true;
+            };
+          };
         };
-      }
-    );
+    };
 }
