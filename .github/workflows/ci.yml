@@ -1,25 +1,26 @@
-name: Cargo Build & Test
+name: "CI"
 
 on:
   push:
   pull_request:
 
-env: 
-  CARGO_TERM_COLOR: always
-
 jobs:
   build_and_test:
-    name: Rust project - latest
+    name: Build and Test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
     steps:
-      - uses: actions/checkout@v4
-      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - run: cargo build --verbose
-      - run: cargo test --verbose
-  
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Format check
+        run: nix fmt -- --check
+
+      - name: Build project
+        run: nix build
+
+      - name: Run tests
+        run: nix develop --command cargo test --verbose
+
