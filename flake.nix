@@ -43,13 +43,33 @@
           };
 
           packages = {
+            default = pkgs.rustPlatform.buildRustPackage {
+              pname = "json_formatter";
+              version = "0.1.0";
+
+              src = ./.;
+
+              cargoLock = {
+                lockFile = ./Cargo.lock;
+              };
+
+              nativeBuildInputs = [ ];
+
+              buildInputs = [ ];
+
+              meta = {
+                description = "A JSON formatter tool";
+                license = pkgs.lib.licenses.mit;
+              };
+            };
+
             mcp-config = mcpConfig;
           };
 
-          devShells.default = with pkgs; mkShell {
+          devShells.default =
+            with pkgs;
+            mkShell {
               buildInputs = [
-                openssl
-                pkg-config
                 rust-bin.stable.latest.default
               ];
 
