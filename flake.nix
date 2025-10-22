@@ -4,6 +4,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -23,16 +27,6 @@
           ...
         }:
         let
-          ciPackages = with pkgs; [
-            rustup
-          ];
-
-          devPackages =
-            ciPackages
-            ++ (with pkgs; [
-              # Additional development tools can be added here
-            ]);
-
           mcpConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs {
             programs = {
               serena.enable = true;
@@ -41,23 +35,29 @@
           };
         in
         {
-          packages = {
-            ci = pkgs.buildEnv {
-              name = "ci";
-              paths = ciPackages;
-            };
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+              inputs.rust-overlay.overlays.default
+            ];
+          };
 
+          packages = {
             mcp-config = mcpConfig;
           };
 
-          devShells.default = pkgs.mkShell {
-            buildInputs = devPackages;
+          devShells.default = with pkgs; mkShell {
+              buildInputs = [
+                openssl
+                pkg-config
+                rust-bin.stable.latest.default
+              ];
 
-            shellHook = ''
-              cat ${mcpConfig} > .mcp.json
-              echo "Generated .mcp.json"
-            '';
-          };
+              shellHook = ''
+                cat ${mcpConfig} > .mcp.json
+                echo "Generated .mcp.json"
+              '';
+            };
 
           treefmt = {
             programs = {

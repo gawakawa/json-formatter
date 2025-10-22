@@ -104,7 +104,28 @@
         "flake-parts": "flake-parts",
         "mcp-servers-nix": "mcp-servers-nix",
         "nixpkgs": "nixpkgs_2",
+        "rust-overlay": "rust-overlay",
         "treefmt-nix": "treefmt-nix"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1761014195,
+        "narHash": "sha256-PlIZkwQM0an4ptA7vEC39ZlJcXPxqtKWtsRCwKz3I4w=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "f34ca7f18bd13e9f4487b0bff3017d3188f21904",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "treefmt-nix": {
