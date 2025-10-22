@@ -5,8 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_test:
-    name: Build and Test
+  tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,9 +17,8 @@ jobs:
       - name: Format check
         run: nix fmt -- --ci
 
-      - name: Build project
+      - name: Build and test
         run: nix build
 
-      - name: Run tests
-        run: nix develop --command cargo test --verbose
-
+      - name: Flake check
+        run: nix flake check
